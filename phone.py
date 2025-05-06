@@ -5037,10 +5037,10 @@ def update_phones(device_id, mode=None):
                     state = 'adb'
                     device_is_found = True
             if get_fastboot():
-                theCmd = f"\"{get_fastboot()}\" -s {device_id} devices"
+                theCmd = f"\"{get_fastboot()}\" devices"
                 debug(theCmd)
                 res = run_shell(theCmd)
-                if res and isinstance(res, subprocess.CompletedProcess) and res.returncode == 0 and 'fastboot' in res.stdout:
+                if res and isinstance(res, subprocess.CompletedProcess) and res.returncode == 0 and device_id in res.stdout:
                     debug("device_mode: f.b")
                     state = 'f.b'
                     device_is_found = True
@@ -5146,14 +5146,19 @@ def get_connected_devices():
                             print(f"\n❌ {datetime.now():%Y-%m-%d %H:%M:%S} ERROR: No permissions to access fastboot device\nsee [http://developer.android.com/tools/device.html]")
                             puml("#red:No permissions to access fastboot device;\n", True)
                             continue
-                        if 'fastboot' in device:
+                        try:
                             d_id = device.split("\t")
+                            if len(d_id) != 2:
+                                continue
                             d_id = d_id[0].strip()
                             device = Device(d_id, 'f.b')
                             device.init('f.b')
                             device_details = device.get_device_details()
                             devices.append(device_details)
                             phones.append(device)
+                        except Exception as e:
+                            print(f"\n{datetime.now():%Y-%m-%d %H:%M:%S} ERROR: Encountered an error while getting fastboot devices.")
+                            traceback.print_exc()
         else:
             print(f"\n❌ {datetime.now():%Y-%m-%d %H:%M:%S} ERROR: Encountered an error while getting fastboot devices.")
 
